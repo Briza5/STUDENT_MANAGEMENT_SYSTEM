@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import QApplication, QVBoxLayout, QLabel, QWidget, QPushButton, QGridLayout, \
     QLineEdit, QMainWindow, QTableWidget, QTableWidgetItem, QDialog, QComboBox
 from PyQt6.QtGui import QAction
+from PyQt6 import QtCore
 import sys  # Import the sys module to handle command-line arguments
 import sqlite3  # Import the sqlite3 module to work with SQLite databases
 
@@ -12,6 +13,7 @@ class MainWindow(QMainWindow):  # Define the MainWindow class inheriting from QM
 
         file_menu_item = self.menuBar().addMenu("&File")  # Create a File menu
         help_menu_item = self.menuBar().addMenu("&Help")  # Create a Help menu
+        edit_menu_item = self.menuBar().addMenu("&Edit")  # Create an Edit menu
 
         # Create an Add Student action
         add_student_action = QAction("Add Student", self)
@@ -22,6 +24,11 @@ class MainWindow(QMainWindow):  # Define the MainWindow class inheriting from QM
         about_action = QAction("About", self)  # Create an About action
         # Add the action to the Help menu
         help_menu_item.addAction(about_action)
+
+        search_action = QAction("Search", self)  # Create a Search action
+        search_action.triggered.connect(self.search)
+        # Add the action to the Edit menu
+        edit_menu_item.addAction(search_action)
 
         self.table = QTableWidget()  # Create a table widget
         # Set the number of columns in the table
@@ -49,6 +56,10 @@ class MainWindow(QMainWindow):  # Define the MainWindow class inheriting from QM
 
     def insert(self):
         dialog = InsertDialog()  # Create an instance of the InsertDialog
+        dialog.exec()  # Execute the dialog
+
+    def search(self):
+        dialog = SearchDialog()  # Create an instance of the SearchDialog
         dialog.exec()  # Execute the dialog
 
 
@@ -99,6 +110,46 @@ class InsertDialog(QDialog):  # Define the InsertDialog class inheriting from QD
         cursor.close()  # Close the cursor
         connection.close()  # Close the database connection
         main_window.load_data()  # Reload data in the main window
+
+
+class SearchDialog(QDialog):  # Define the SearchDialog class inheriting from QDialog
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Search Student Data")
+        self.setFixedWidth(200)  # Set a fixed width for the dialog
+        self.setFixedHeight(200)  # Set a fixed height for the dialog
+
+        layout = QVBoxLayout()  # Create a vertical box layout
+
+        # Add search data widget
+        self.search_student = QLineEdit()  # Create a line for the search data
+        self.search_student.setPlaceholderText("Name")  # Set placeholder text
+        # Add the line edit to the layout
+        layout.addWidget(self.search_student)
+
+        # Add search button
+        search_button = QPushButton("Search")  # Create a search button
+        # Connect the button click to search_student_data method
+        search_button.clicked.connect(self.search)
+        layout.addWidget(search_button)  # Add the button to the layout
+
+        self.setLayout(layout)  # Set the layout of the dialog
+
+    def search(self):
+        name = self.search_student.text()  # Get the search name from the line edit
+        # Connect to the SQLite database
+        connection = sqlite3.connect("database.db")
+        cursor = connection.cursor()  # Create a cursor object
+        result = cursor.execute("SELECT * FROM students WHERE name=?", (name,))
+        rows = list(result)
+        items = main_window.table.findItems(
+            name, QtCore.Qt.MatchFlag.MatchExactly)  # Find matching items in the table
+        for item in items:
+            print(item)
+            main_window.table.item(item.row(), 1).setSelected(
+                True)  # Select the matching rows
+        cursor.close()  # Close the cursor
+        connection.close()  # Close the database connection
 
 
 app = QApplication(sys.argv)  # Create the application object
