@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import QApplication, QVBoxLayout, QLabel, QWidget, QPushButton, QGridLayout, \
-    QLineEdit, QMainWindow, QTableWidget, QTableWidgetItem, QDialog, QComboBox
-from PyQt6.QtGui import QAction
+    QLineEdit, QMainWindow, QTableWidget, QTableWidgetItem, QDialog, QComboBox, QToolBar, QStatusBar
+from PyQt6.QtGui import QAction, QIcon
 from PyQt6 import QtCore
 import sys  # Import the sys module to handle command-line arguments
 import sqlite3  # Import the sqlite3 module to work with SQLite databases
@@ -10,13 +10,15 @@ class MainWindow(QMainWindow):  # Define the MainWindow class inheriting from QM
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Student Management System")
+        self.setMinimumSize(800, 600)  # Set the minimum size of the window
 
         file_menu_item = self.menuBar().addMenu("&File")  # Create a File menu
         help_menu_item = self.menuBar().addMenu("&Help")  # Create a Help menu
         edit_menu_item = self.menuBar().addMenu("&Edit")  # Create an Edit menu
 
         # Create an Add Student action
-        add_student_action = QAction("Add Student", self)
+        add_student_action = QAction(
+            QIcon("icons/add.png"), "Add Student", self)
         add_student_action.triggered.connect(self.insert)
         # Add the action to the File menu
         file_menu_item.addAction(add_student_action)
@@ -25,7 +27,8 @@ class MainWindow(QMainWindow):  # Define the MainWindow class inheriting from QM
         # Add the action to the Help menu
         help_menu_item.addAction(about_action)
 
-        search_action = QAction("Search", self)  # Create a Search action
+        # Create a Search action
+        search_action = QAction(QIcon("icons/search.png"), "Search", self)
         search_action.triggered.connect(self.search)
         # Add the action to the Edit menu
         edit_menu_item.addAction(search_action)
@@ -39,6 +42,40 @@ class MainWindow(QMainWindow):  # Define the MainWindow class inheriting from QM
         self.table.verticalHeader().setVisible(False)  # Hide the vertical header
         # Set the table as the central widget
         self.setCentralWidget(self.table)
+
+        # Create toolbar and add toolbar elements
+        toolbar = QToolBar()  # Create a toolbar
+        toolbar.setMovable(True)  # Make the toolbar movable
+        self.addToolBar(toolbar)  # Add the toolbar to the main window
+        # Add the Add Student action to the toolbar
+        toolbar.addAction(add_student_action)
+        toolbar.addAction(search_action)
+
+        # Create status bar and add status bar elements
+        self.statusbar = QStatusBar()  # Create a status bar
+        # Set the status bar for the main window
+        self.setStatusBar(self.statusbar)
+
+        # Detect when a cell is clicked in the table
+        self.table.cellClicked.connect(self.cell_clicked)
+
+    def cell_clicked(self):
+        edit_button = QPushButton("Edit Record")  # Create an Edit button
+        # Connect the button click to edit method
+        edit_button.clicked.connect(self.edit)
+
+        delete_button = QPushButton("Delete Record")  # Create a Delete button
+        # Connect the button click to delete method
+        delete_button.clicked.connect(self.delete)
+
+        # Clear existing buttons in the status bar
+        children = self.findChildren(QPushButton)
+        if children:
+            for child in children:
+                self.statusBar().removeWidget(child)
+
+        self.statusBar().addWidget(edit_button)  # Add the button to the status bar
+        self.statusBar().addWidget(delete_button)  # Add the button to the status bar
 
     def load_data(self):
         # Connect to the SQLite database
@@ -61,6 +98,24 @@ class MainWindow(QMainWindow):  # Define the MainWindow class inheriting from QM
     def search(self):
         dialog = SearchDialog()  # Create an instance of the SearchDialog
         dialog.exec()  # Execute the dialog
+
+    def edit(self):
+        dialog = EditDialog()  # Create an instance of the EditDialog
+        dialog.exec()  # Execute the dialog
+        pass
+
+    def delete(self):
+        dialog = DeleteDialog()  # Create an instance of the DeleteDialog
+        dialog.exec()  # Execute the dialog
+        pass
+
+
+class EditDialog(QDialog):  # Define the EditDialog class inheriting from QDialog
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Edit Student Data")
+        self.setFixedWidth(300)  # Set a fixed width for the dialog
+        self.setFixedHeight(300)  # Set a fixed height for the dialog
 
 
 class InsertDialog(QDialog):  # Define the InsertDialog class inheriting from QDialog
