@@ -6,6 +6,15 @@ import sys  # Import the sys module to handle command-line arguments
 import sqlite3  # Import the sqlite3 module to work with SQLite databases
 
 
+class DatabaseConnection:  # Define the DatabaseConnection class
+    def __init__(self, database_file="database.db"):
+        self.database_file = database_file
+
+    def connect(self):
+        connection = sqlite3.connect(self.database_file)
+        return connection
+
+
 class MainWindow(QMainWindow):  # Define the MainWindow class inheriting from QMainWindow
     def __init__(self):
         super().__init__()
@@ -80,7 +89,7 @@ class MainWindow(QMainWindow):  # Define the MainWindow class inheriting from QM
 
     def load_data(self):
         # Connect to the SQLite database
-        connection = sqlite3.connect("database.db")
+        connection = DatabaseConnection().connect()
         # Execute a query to fetch all students
         result = connection.execute("SELECT * FROM students")
         self.table.setRowCount(0)  # Clear existing rows in the table
@@ -171,7 +180,7 @@ class EditDialog(QDialog):  # Define the EditDialog class inheriting from QDialo
 
     def update_student(self):
         # Connect to the SQLite database
-        connection = sqlite3.connect("database.db")
+        connection = DatabaseConnection().connect()
         cursor = connection.cursor()  # Create a cursor object
         cursor.execute("""UPDATE students SET name=?, course=?, mobile=? WHERE id=?""",
                        (self.student_name.text(),
@@ -207,7 +216,7 @@ class DeleteDialog(QDialog):  # Define the DeleteDialog class inheriting from QD
         no.clicked.connect(self.close)  # Connect No button to close the dialog
 
     def delete_student(self):        # Connect to the SQLite database
-        connection = sqlite3.connect("database.db")
+        connection = DatabaseConnection().connect()
         cursor = connection.cursor()  # Create a cursor object
         # Get id from the selected row in the main window table
         index = main_window.table.currentRow()  # Get the currently selected row index
@@ -267,7 +276,7 @@ class InsertDialog(QDialog):  # Define the InsertDialog class inheriting from QD
         course = self.course_name.itemText(self.course_name.currentIndex())
         mobile = self.mobile_number.text()  # Get the mobile number from the line edit
         # Connect to the SQLite database
-        connection = sqlite3.connect("database.db")
+        connection = DatabaseConnection().connect()
         cursor = connection.cursor()  # Create a cursor object
         cursor.execute("INSERT INTO students (name, course, mobile) VALUES (?, ?, ?)",
                        (name, course, mobile))  # Execute the insert query
@@ -303,7 +312,7 @@ class SearchDialog(QDialog):  # Define the SearchDialog class inheriting from QD
     def search(self):
         name = self.search_student.text()  # Get the search name from the line edit
         # Connect to the SQLite database
-        connection = sqlite3.connect("database.db")
+        connection = DatabaseConnection().connect()
         cursor = connection.cursor()  # Create a cursor object
         result = cursor.execute("SELECT * FROM students WHERE name=?", (name,))
         rows = list(result)
