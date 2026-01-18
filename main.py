@@ -13,8 +13,8 @@ class MainWindow(QMainWindow):  # Define the MainWindow class inheriting from QM
         self.setMinimumSize(800, 600)  # Set the minimum size of the window
 
         file_menu_item = self.menuBar().addMenu("&File")  # Create a File menu
-        help_menu_item = self.menuBar().addMenu("&Help")  # Create a Help menu
         edit_menu_item = self.menuBar().addMenu("&Edit")  # Create an Edit menu
+        help_menu_item = self.menuBar().addMenu("&Help")  # Create a Help menu
 
         # Create an Add Student action
         add_student_action = QAction(
@@ -26,6 +26,7 @@ class MainWindow(QMainWindow):  # Define the MainWindow class inheriting from QM
         about_action = QAction("About", self)  # Create an About action
         # Add the action to the Help menu
         help_menu_item.addAction(about_action)
+        about_action.triggered.connect(self.about)
 
         # Create a Search action
         search_action = QAction(QIcon("icons/search.png"), "Search", self)
@@ -106,6 +107,21 @@ class MainWindow(QMainWindow):  # Define the MainWindow class inheriting from QM
     def delete(self):
         dialog = DeleteDialog()  # Create an instance of the DeleteDialog
         dialog.exec()  # Execute the dialog
+
+    def about(self):
+        dialog = AboutDialog()  # Create an instance of the AboutDialog
+        dialog.exec()  # Execute the dialog
+
+
+class AboutDialog(QMessageBox):  # Define the AboutDialog class inheriting from QMessageBox
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("About")  # Set the title of the dialog
+        content = """
+        This app was created during the course "The Python Mega Course"
+        Feel free to use and modify it as you wish!
+        """
+        self.setText(content)  # Set the message text
 
 
 class EditDialog(QDialog):  # Define the EditDialog class inheriting from QDialog
