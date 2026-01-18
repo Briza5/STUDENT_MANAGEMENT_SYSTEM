@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QApplication, QVBoxLayout, QLabel, QWidget, QPushButton, QGridLayout, \
-    QLineEdit, QMainWindow, QTableWidget, QTableWidgetItem, QDialog, QComboBox, QToolBar, QStatusBar
+    QLineEdit, QMainWindow, QTableWidget, QTableWidgetItem, QDialog, QComboBox, QToolBar, QStatusBar, QMessageBox
 from PyQt6.QtGui import QAction, QIcon
 from PyQt6 import QtCore
 import sys  # Import the sys module to handle command-line arguments
@@ -102,12 +102,10 @@ class MainWindow(QMainWindow):  # Define the MainWindow class inheriting from QM
     def edit(self):
         dialog = EditDialog()  # Create an instance of the EditDialog
         dialog.exec()  # Execute the dialog
-        pass
 
     def delete(self):
         dialog = DeleteDialog()  # Create an instance of the DeleteDialog
         dialog.exec()  # Execute the dialog
-        pass
 
 
 class EditDialog(QDialog):  # Define the EditDialog class inheriting from QDialog
@@ -169,6 +167,49 @@ class EditDialog(QDialog):  # Define the EditDialog class inheriting from QDialo
         cursor.close()  # Close the cursor
 
         main_window.load_data()  # Reload data in the main window
+
+
+class DeleteDialog(QDialog):  # Define the DeleteDialog class inheriting from QDialog
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Delete Student Data")
+
+        layout = QGridLayout()  # Create a grid layout
+        # Create a confirmation label
+        confirmation = QLabel("Are you sure you want to delete this record?")
+        yes = QPushButton("Yes")  # Create a Yes button
+        no = QPushButton("No")  # Create a No button
+
+        # Add the label to the layout
+        layout.addWidget(confirmation, 0, 0, 1, 2)
+        layout.addWidget(yes, 1, 0)  # Add the Yes button to the layout
+        layout.addWidget(no, 1, 1)  # Add the No button to the layout
+        self.setLayout(layout)  # Set the layout of the dialog
+
+        # Connect Yes button to delete_student method
+        yes.clicked.connect(self.delete_student)
+        no.clicked.connect(self.close)  # Connect No button to close the dialog
+
+    def delete_student(self):        # Connect to the SQLite database
+        connection = sqlite3.connect("database.db")
+        cursor = connection.cursor()  # Create a cursor object
+        # Get id from the selected row in the main window table
+        index = main_window.table.currentRow()  # Get the currently selected row index
+        student_id = main_window.table.item(index, 0).text()
+        cursor.execute("DELETE FROM students WHERE id=?",
+                       (student_id,))  # Execute the delete query
+        connection.commit()  # Commit the changes to the database
+        cursor.close()  # Close the cursor
+        connection.close()  # Close the database connection
+        main_window.load_data()  # Reload data in the main window
+        self.close()  # Close the dialog
+
+        confirmation_widget = QMessageBox()  # Create a confirmation message box
+        # Set the title of the message box
+        confirmation_widget.setWindowTitle("Success")
+        confirmation_widget.setText(
+            "Record was deleted successfully.")  # Set the message text
+        confirmation_widget.exec()  # Execute the message box
 
 
 class InsertDialog(QDialog):  # Define the InsertDialog class inheriting from QDialog
