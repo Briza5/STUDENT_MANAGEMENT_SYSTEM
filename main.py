@@ -126,10 +126,24 @@ class AboutDialog(QMessageBox):  # Define the AboutDialog class inheriting from 
     def __init__(self):
         super().__init__()
         self.setWindowTitle("About")  # Set the title of the dialog
+
+        # Set formatted text using HTML for modern appearance
         content = """
-        This app was created during the course "The Python Mega Course"
-        Feel free to use and modify it as you wish!
+        <html>
+        <body style='font-family: Arial, sans-serif;'>
+            <h2 style='color: #3498db; margin-bottom: 10px;'>Student Management System</h2>
+            <p style='line-height: 1.6;'>
+                This application was created during the course<br>
+                <strong>"The Python Mega Course"</strong>
+            </p>
+            <p style='opacity: 0.7; font-size: 11px; margin-top: 15px;'>
+                Feel free to use and modify it as you wish!
+            </p>
+        </body>
+        </html>
         """
+        self.setTextFormat(
+            QtCore.Qt.TextFormat.RichText)  # Enable HTML formatting
         self.setText(content)  # Set the message text
 
 
