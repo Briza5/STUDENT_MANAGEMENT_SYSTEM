@@ -113,9 +113,62 @@ class MainWindow(QMainWindow):  # Define the MainWindow class inheriting from QM
 class EditDialog(QDialog):  # Define the EditDialog class inheriting from QDialog
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Edit Student Data")
+        self.setWindowTitle("Update Student Data")
         self.setFixedWidth(300)  # Set a fixed width for the dialog
         self.setFixedHeight(300)  # Set a fixed height for the dialog
+
+        layout = QVBoxLayout()  # Create a vertical box layout
+        # Get student name from the selected row in the main window table
+        index = main_window.table.currentRow()  # Get the currently selected row index
+        student_name = main_window.table.item(index, 1).text()
+
+        # Get id from the selected row in the main window table
+        self.student_id = main_window.table.item(index, 0).text()
+
+        # Create a line edit for the student name
+        self.student_name = QLineEdit(student_name)
+        self.student_name.setPlaceholderText("Name")  # Set placeholder text
+        layout.addWidget(self.student_name)  # Add the line edit to the layout
+
+        # Add combo box for course name
+        # Get the course name from the table
+        course_name = main_window.table.item(index, 2).text()
+        self.course_name = QComboBox()  # Create a combo box for the course name
+        courses = ["Biology", "Math", "Astronomy", "Physics"]
+        self.course_name.addItems(courses)
+        self.course_name.setCurrentText(course_name)
+        layout.addWidget(self.course_name)  # Add the combo box to the layout
+
+        # Add mobile number widget
+        # Get the mobile number from the table
+        mobile_number = main_window.table.item(index, 3).text()
+        # Create a line edit for the mobile number
+        self.mobile_number = QLineEdit(mobile_number)
+        self.mobile_number.setPlaceholderText("Mobile")  # Set placeholder text
+        layout.addWidget(self.mobile_number)  # Add the line edit to the layout
+
+        # Add submit button
+        submit_button = QPushButton("Update")  # Create a update button
+        # Connect the button click to add_student method
+        submit_button.clicked.connect(self.update_student)
+        layout.addWidget(submit_button)  # Add the button to the layout
+
+        self.setLayout(layout)  # Set the layout of the dialog
+
+    def update_student(self):
+        # Connect to the SQLite database
+        connection = sqlite3.connect("database.db")
+        cursor = connection.cursor()  # Create a cursor object
+        cursor.execute("""UPDATE students SET name=?, course=?, mobile=? WHERE id=?""",
+                       (self.student_name.text(),
+                        self.course_name.itemText(
+                            self.course_name.currentIndex()),
+                        self.mobile_number.text(),
+                        self.student_id))  # Execute the update query
+        connection.commit()  # Commit the changes to the database
+        cursor.close()  # Close the cursor
+
+        main_window.load_data()  # Reload data in the main window
 
 
 class InsertDialog(QDialog):  # Define the InsertDialog class inheriting from QDialog
